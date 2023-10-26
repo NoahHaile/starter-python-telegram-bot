@@ -66,25 +66,5 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
     text = update.message["text"]
     print("Received message:", update.message)
 
-    if text == "/start":
-        with open('hello.gif', 'rb') as photo:
-            await bot.send_photo(chat_id=chat_id, photo=photo)
-        await bot.send_message(chat_id=chat_id, text="Welcome, please enter a link to your channel.")
-    elif text == "/subscribe":
-        cursor.execute("""SELECT chat_id, link from users where shared_status=false ORDER BY last_shared""")
-    result = cursor.fetchone()
-    if result is None:
-        default_values = {
-            'chat_id': 6081026054,
-            'link': "https://www.youtube.com/watch?v=W9q-0tCfvKE"
-        }
-        result = default_values
-
-        chat_id = result['chat_id']
-        link = result['link']
-        cursor.execute("""UPDATE users SET shared_status=true where chat_id=%s""", (chat_id,))
-        cursor.execute("""UPDATE users SET viewing=%s where chat_id=%s""", (chat_id, update.effective_chat.id))
-        conn.commit()
-        await bot.send_message(chat_id=chat_id, reply_to_message_id=update.message["message_id"], text="Send the message /subscribed when your subscription is complete " + link)
-
+    
     return {"ok": True}
