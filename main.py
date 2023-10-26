@@ -33,7 +33,7 @@ def auth_telegram_token(x_telegram_bot_api_secret_token: str = Header(None)) -> 
 async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_telegram_token)):
     chat_id = update.message["chat"]["id"]
     text = update.message["text"]
-    # print("Received message:", update.message)
+    print("Received message:", update.message)
 
     if text == "/start":
         with open('hello.gif', 'rb') as photo:
