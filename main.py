@@ -4,6 +4,37 @@ from fastapi import FastAPI, Header, HTTPException, Depends
 from telegram import Update, Bot
 from pydantic import BaseModel
 
+import logging
+import re
+import psycopg2
+from psycopg2.extras import RealDictCursor
+import time
+import asyncio
+
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+
+#postgres://tiktok_ethiopia_user:787ddC53ERWXkZdYjiiNHhQ5ACDVqri9@dpg-ckbvu76ct0pc738n81b0-a.oregon-postgres.render.com/tiktok_ethiopia
+db_params = {
+    'host': 'dpg-ckbvu76ct0pc738n81b0-a.oregon-postgres.render.com',
+    'database': 'tiktok_ethiopia',
+    'user': 'tiktok_ethiopia_user',
+    'password': '787ddC53ERWXkZdYjiiNHhQ5ACDVqri9'
+}
+while True:
+    try:
+        conn = psycopg2.connect(**db_params, cursor_factory=RealDictCursor)
+        cursor = conn.cursor()
+        print('Database connection was successful')
+        break
+
+    except Exception as error:
+        print("Connection to database failed")
+        print("Error: ", error)
+        time.sleep(4)
+
 class TelegramUpdate(BaseModel):
     update_id: int
     message: dict
