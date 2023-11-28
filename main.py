@@ -23,7 +23,8 @@ db_params = {
     'host': 'dpg-ckbvu76ct0pc738n81b0-a.oregon-postgres.render.com',
     'database': 'tiktok_ethiopia',
     'user': 'tiktok_ethiopia_user',
-    'password': '787ddC53ERWXkZdYjiiNHhQ5ACDVqri9'
+    'password': '787ddC53ERWXkZdYjiiNHhQ5ACDVqri9',
+    'port': '5432'
 }
 while True:
     try:
