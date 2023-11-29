@@ -67,7 +67,7 @@ async def checkForAssholes():
         cursor.execute("""UPDATE users
             SET shared_status = false
             WHERE last_shared IS NOT NULL
-            AND EXTRACT(EPOCH FROM (NOW() - last_shared)) > 600;""" )
+            AND EXTRACT(EPOCH FROM (NOW() - last_shared)) > 1200;""" )
         conn.commit()
 
 loop = asyncio.get_event_loop()
@@ -124,7 +124,10 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                     'chat_id': 6081026054,
                     'link': "https://vm.tiktok.com/ZM6euGGGA/"
                 }
-                result = default_values
+                await bot.send_message(chat_id=chat_id, text="Sorry, we can't pair you up right now. Check back in a little while.")
+                await bot.send_message(chat_id=chat_id, text="Brought to you by... " + default_values["link"])
+                return
+                
 
             
             link = result['link']
@@ -140,57 +143,84 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
             await bot.send_message(chat_id=chat_id, text=link + '\nPress "Subscribed" once subscribed, or "Already Subscribed" if you are already subscribed to the link above.', reply_markup=reply_markup)
            
 
-    elif text == "/subscribe":
-        cursor.execute("""SELECT chat_id, link from users where shared_status=false ORDER BY last_shared""")
-        result = cursor.fetchone()
-        if result is None:
-            default_values = {
-                'chat_id': 6081026054,
-                'link': "https://vm.tiktok.com/ZM6euGGGA/"
-            }
-            result = default_values
+        elif text == "ALREADY_SUBBED":
 
-        
-        link = result['link']
-        cursor.execute("""UPDATE users SET shared_status=true where chat_id=%s""", (result['chat_id'],))
-        cursor.execute("""UPDATE users SET viewing=%s where chat_id=%s""", (result['chat_id'], chat_id))
-        conn.commit()
-        await bot.send_message(chat_id=chat_id, reply_to_message_id=update.message["message_id"], text="Send the message /subscribed when your subscription is complete " + link)
+            cursor.execute("""SELECT chat_id, link from users where shared_status=false ORDER BY last_shared""")
+            result = cursor.fetchone()
+            if result is None:
+                default_values = {
+                    'chat_id': 6081026054,
+                    'link': "https://vm.tiktok.com/ZM6euGGGA/"
+                }
 
-    elif text == "/subscribed":
-        cursor.execute("""SELECT viewing FROM users WHERE chat_id=%s""", (chat_id,))
+                await bot.send_message(chat_id=chat_id, text="Sorry, we can't pair you up right now. Check back in a little while.")
+                await bot.send_message(chat_id=chat_id, text="Brought to you by... " + default_values["link"])
+                return
 
-        result = cursor.fetchone()
 
-        if result is None:
+            chat_id_store = result['chat_id']
+            link = result['link']
+            cursor.execute("""UPDATE users SET shared_status=true where chat_id=%s""", (chat_id_store,))
+            cursor.execute("""UPDATE users SET viewing=%s where chat_id=%s""", (chat_id_store, chat_id))
+            conn.commit()
+            cursor.execute("""SELECT viewing FROM users WHERE chat_id=%s""", (chat_id,))
+
+            result = cursor.fetchone()
+            cursor.execute("""UPDATE users SET shared_status = false where chat_id = %s""", (result["viewing"],))
+            conn.commit()
+            keyboard = [[InlineKeyboardButton("Subscribed 🫡", callback_data='SUBBED'),
+                         InlineKeyboardButton("Already Subscribed 🤝", callback_data='ALREADY_SUBBED')]]
+
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await bot.send_message(chat_id=chat_id, text="Sorry about that, I will generate a new channel you can subscribe to. Check back in a little while if we can't pair you up.")
+            await bot.send_message(chat_id=chat_id, text=link)
+            await bot.send_message(chat_id=chat_id, text=link + '\nPress "Subscribed" once subscribed, or "Already Subscribed" if you are already subscribed to the link above.', reply_markup=reply_markup)
+
+
+        elif text == "SUBBED":
+            cursor.execute("""SELECT viewing FROM users WHERE chat_id=%s""", (chat_id,))
+
+            result = cursor.fetchone()
+
+            keyboard = [[InlineKeyboardButton("Start Subscribing 👍🏽", callback_data='SUB')]]
+
+            reply_markup = InlineKeyboardMarkup(keyboard)
+
+            if result is None:
+                
+                await bot.send_message(chat_id=chat_id, text='You have taken more than 20 minutes to subscribe, please try again!', reply_markup=reply_markup)
+                return
+
+            cursor.execute("""
+                UPDATE users 
+                SET last_shared = CASE 
+                    WHEN shares = 0 THEN NOW() 
+                    ELSE last_shared 
+                END,
+                shares = shares + 1 
+                WHERE chat_id = %s
+                """, (chat_id,))
+            
+            cursor.execute("""UPDATE users SET shares = shares - 1, last_shared = NOW(), shared_status = false where chat_id = %s""", (result["viewing"],))
+            conn.commit()
+            
             await bot.send_message(
-                chat_id=chat_id,
-                text="Please subscribe first and subscribe to somebody on our system."
-            )
-            return
-
-        cursor.execute("""
-            UPDATE users 
-            SET last_shared = CASE 
-                WHEN shares = 0 THEN NOW() 
-                ELSE last_shared 
-            END,
-            shares = shares + 1 
-            WHERE chat_id = %s
-            """, (chat_id,))
-        
-        cursor.execute("""UPDATE users SET shares = shares - 1, last_shared = NOW(), shared_status = false where chat_id = %s""", (result["viewing"],))
-        conn.commit()
-        
-        await bot.send_message(
-                chat_id=chat_id,
-                text="Thank You for subscribing, now someone else will subscribe to you."
-            )
-        await bot.send_message(
-                chat_id=result["viewing"],
-                text="A new user should have subscribed to you, /report if they haven't."
-            )
-        
+                    chat_id=chat_id,
+                    text="Thank You for subscribing, now someone else will subscribe to you."
+                    , reply_markup=reply_markup
+                )
+            await bot.send_message(
+                    chat_id=result["viewing"],
+                    text="A new user should have subscribed to you, /report them if they haven't and they will be banned."
+                    , reply_markup=reply_markup
+                )
+    elif text == '/report':
+           await bot.send_message(
+                    chat_id=chat_id,
+                    text="Your Report has been noted and the system will put the user under review. Thank you."
+                    
+           )
     else:
         user_message = text
         # Check if the message looks like a link
