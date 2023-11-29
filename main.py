@@ -9,7 +9,7 @@ import pg8000
 
 import logging
 import re
-
+from typing import Optional, Dict
 import time
 import asyncio
 
@@ -42,7 +42,8 @@ while True:
 
 class TelegramUpdate(BaseModel):
     update_id: int
-    message: dict
+    message: Optional[Dict] = None
+    callback_query: Optional[Dict] = None
 
 app = FastAPI()
 
