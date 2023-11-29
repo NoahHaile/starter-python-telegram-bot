@@ -3,7 +3,7 @@
 import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, Header, HTTPException, Depends
-from telegram import Update, Bot
+from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup
 from pydantic import BaseModel
 import pg8000
 
@@ -85,14 +85,21 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
     print("Received message:", update.message)
 
     if text == "/start":
-        await bot.send_message(chat_id=chat_id, text="Welcome, please enter a link to your YouTube/TikTok channel.\n እንኳን ደህና መጣችሁ፣ እባኮትን ወደ YouTube/TikTok ቻናላችሁ የሚወስድ አገናኝ 'Link' ያስገቡ።")
+        keyboard = [[InlineKeyboardButton("English 🇺🇸", callback_data='1'),
+                 InlineKeyboardButton("Amharic 🇪🇹", callback_data='2')]]
+
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        bot.send_message(chat_id=chat_id, text='Welcome, please choose a Language:', reply_markup=reply_markup)
+
+        await bot.send_message(chat_id=chat_id, text="Welcome, please enter a link to your YouTube/TikTok channel.\n እንኳን ደህና መጣችሁ፣ እባኮትን ወደ YouTube/TikTok ቻናላችሁ የሚወስድ አገናኝ ሊንክ ያስገቡ።")
     elif text == "/subscribe":
         cursor.execute("""SELECT chat_id, link from users where shared_status=false ORDER BY last_shared""")
         result = cursor.fetchone()
         if result is None:
             default_values = {
                 'chat_id': 6081026054,
-                'link': "https://www.youtube.com/watch?v=W9q-0tCfvKE"
+                'link': "https://vm.tiktok.com/ZM6euGGGA/"
             }
             result = default_values
 
