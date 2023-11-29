@@ -141,16 +141,16 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
         # Check if the message looks like a link
         if is_valid_url(user_message):
             received_link = re.search(r'https?://\S+', user_message).group()
-            cursor.execute("""INSERT INTO users (link, chat_id) VALUES (%s, %s)""", (received_link, update.effective_chat.id))
+            cursor.execute("""INSERT INTO users (link, chat_id) VALUES (%s, %s)""", (received_link, chat_id))
             
             conn.commit()
             await bot.send_message(
-                chat_id=update.effective_chat.id,
+                chat_id=chat_id,
                 text=f"Thank you for providing the link: {received_link}"
             )
         else:
             await bot.send_message(
-                chat_id=update.effective_chat.id,
+                chat_id=chat_id,
                 text="Sorry, I don't think that is quite right. Please enter a valid link."
             )
 
