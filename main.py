@@ -24,16 +24,12 @@ db_params = {
     'database': 'tiktok_ethiopia',
     'user': 'tiktok_ethiopia_user',
     'password': '787ddC53ERWXkZdYjiiNHhQ5ACDVqri9',
-    'port': '5432'
+    'port': '5432',
+    'realDict': True
 }
 while True:
     try:
-        conn = pg8000.connect(
-            'host': 'dpg-ckbvu76ct0pc738n81b0-a.oregon-postgres.render.com',
-            'database': 'tiktok_ethiopia',
-            'user': 'tiktok_ethiopia_user',
-            'password': '787ddC53ERWXkZdYjiiNHhQ5ACDVqri9',
-            'port': '5432')
+        conn = pg8000.connect(**db_params)
         cursor = conn.cursor()
         print('Database connection was successful')
         break
