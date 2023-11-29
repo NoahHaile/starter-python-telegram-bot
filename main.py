@@ -137,7 +137,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
             )
         
     else:
-        user_message = update.message.text
+        user_message = text
         # Check if the message looks like a link
         if is_valid_url(user_message):
             received_link = re.search(r'https?://\S+', user_message).group()
