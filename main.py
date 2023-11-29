@@ -81,8 +81,13 @@ def auth_telegram_token(x_telegram_bot_api_secret_token: str = Header(None)) -> 
 
 @app.post("/webhook/")
 async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_telegram_token)):
-    chat_id = update.message["chat"]["id"]
-    text = update.message["text"]
+    chat_id = ""
+    text = ""
+    if update.message:
+        # Handle message update
+        # Extract chat_id and text from update.message
+        chat_id = update.message["chat"]["id"]
+        text = update.message.get("text", "")
     print("Received message:", update.message)
 
     if text == "/start":
