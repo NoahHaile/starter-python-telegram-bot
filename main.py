@@ -24,19 +24,21 @@ db_params = {
     'database': 'tiktok_ethiopia',
     'user': 'tiktok_ethiopia_user',
     'password': '787ddC53ERWXkZdYjiiNHhQ5ACDVqri9',
-    'port': '5432',
-    'realDict': True
+    'ssl_context': True
+    
 }
 while True:
     try:
+        
         conn = pg8000.connect(**db_params)
         cursor = conn.cursor()
         print('Database connection was successful')
         break
 
-    except pg8000.DatabaseError as e:
+    except (pg8000.OperationalError, pg8000.InterfaceError) as e:
         print("Error connecting to PostgreSQL:", e)
-        time.sleep(4)
+        time.sleep(4)  # Wait for 4 seconds before retrying
+
 
 class TelegramUpdate(BaseModel):
     update_id: int
