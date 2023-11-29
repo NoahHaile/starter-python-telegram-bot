@@ -85,14 +85,33 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
     print("Received message:", update.message)
 
     if text == "/start":
-        keyboard = [[InlineKeyboardButton("English 🇺🇸", callback_data='1'),
-                 InlineKeyboardButton("Amharic 🇪🇹", callback_data='2')]]
+        keyboard = [[InlineKeyboardButton("English 🇺🇸", callback_data='EN'),
+                 InlineKeyboardButton("አማርኛ 🇪🇹", callback_data='AM')]]
 
         reply_markup = InlineKeyboardMarkup(keyboard)
 
         await bot.send_message(chat_id=chat_id, text='Welcome, please choose a Language:', reply_markup=reply_markup)
 
-        await bot.send_message(chat_id=chat_id, text="Welcome, please enter a link to your YouTube/TikTok channel.\n እንኳን ደህና መጣችሁ፣ እባኮትን ወደ YouTube/TikTok ቻናላችሁ የሚወስድ አገናኝ ሊንክ ያስገቡ።")
+        
+
+    elif update.callback_query:
+        query = update.callback_query
+        chat_id = query["message"]["chat"]["id"]
+        callback_data = query["data"]
+        
+        # Acknowledge the callback query
+        await bot.answer_callback_query(callback_query_id=query["id"])
+
+        # Process the callback data
+        if callback_data == "EN":
+            # Perform action for English button
+            await bot.send_message(chat_id=chat_id, text="You selected English 🇺🇸\n\n")
+            await bot.send_message(chat_id=chat_id, text="Please enter a link to your YouTube/TikTok channel.")
+        elif callback_data == "AM":
+            # Perform action for Amharic button
+            await bot.send_message(chat_id=chat_id, text="አማርኛ ተመርጧል 🇪🇹\n\n")
+            await bot.send_message(chat_id=chat_id, text="እንኳን ደህና መጣችሁ፣ እባኮትን ወደ YouTube/TikTok ቻናላችሁ የሚወስድ አገናኝ ሊንክ ያስገቡ።")
+
     elif text == "/subscribe":
         cursor.execute("""SELECT chat_id, link from users where shared_status=false ORDER BY last_shared""")
         result = cursor.fetchone()
