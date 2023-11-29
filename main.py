@@ -110,13 +110,35 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
         # Process the callback data
         if callback_data == "EN":
-            # Perform action for English button
-            await bot.send_message(chat_id=chat_id, text="You selected English 🇺🇸\n\n")
+            
             await bot.send_message(chat_id=chat_id, text="Please enter a link to your YouTube/TikTok channel.")
         elif callback_data == "AM":
-            # Perform action for Amharic button
-            await bot.send_message(chat_id=chat_id, text="አማርኛ ተመርጧል 🇪🇹\n\n")
-            await bot.send_message(chat_id=chat_id, text="እንኳን ደህና መጣችሁ፣ እባኮትን ወደ YouTube/TikTok ቻናላችሁ የሚወስድ አገናኝ ሊንክ ያስገቡ።")
+            
+            await bot.send_message(chat_id=chat_id, text="እባኮትን ወደ YouTube/TikTok ቻናላችሁ የሚወስድ አገናኝ ሊንክ ያስገቡ።")
+
+        elif callback_data == "SUB":
+            cursor.execute("""SELECT chat_id, link from users where shared_status=false ORDER BY last_shared""")
+            result = cursor.fetchone()
+            if result is None:
+                default_values = {
+                    'chat_id': 6081026054,
+                    'link': "https://vm.tiktok.com/ZM6euGGGA/"
+                }
+                result = default_values
+
+            
+            link = result['link']
+            cursor.execute("""UPDATE users SET shared_status=true where chat_id=%s""", (result['chat_id'],))
+            cursor.execute("""UPDATE users SET viewing=%s where chat_id=%s""", (result['chat_id'], chat_id))
+            conn.commit()
+            keyboard = [[InlineKeyboardButton("Subscribed 🫡", callback_data='SUBBED'),
+                         InlineKeyboardButton("Already Subscribed 🤝", callback_data='ALREADY_SUBBED')]]
+
+            reply_markup = InlineKeyboardMarkup(keyboard)
+
+            await bot.send_message(chat_id=chat_id, text=link)
+            await bot.send_message(chat_id=chat_id, text=link + '\nPress "Subscribed" once subscribed, or "Already Subscribed" if you are already subscribed to the link above.', reply_markup=reply_markup)
+           
 
     elif text == "/subscribe":
         cursor.execute("""SELECT chat_id, link from users where shared_status=false ORDER BY last_shared""")
@@ -159,6 +181,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
         
         cursor.execute("""UPDATE users SET shares = shares - 1, last_shared = NOW(), shared_status = false where chat_id = %s""", (result["viewing"],))
         conn.commit()
+        
         await bot.send_message(
                 chat_id=chat_id,
                 text="Thank You for subscribing, now someone else will subscribe to you."
@@ -176,10 +199,15 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
             cursor.execute("""INSERT INTO users (link, chat_id) VALUES (%s, %s)""", (received_link, chat_id))
             
             conn.commit()
+            keyboard = [[InlineKeyboardButton("Start Subscribing 👍🏽", callback_data='SUB')]]
+
+            reply_markup = InlineKeyboardMarkup(keyboard)
             await bot.send_message(
                 chat_id=chat_id,
                 text=f"Thank you for providing the link: {received_link}"
             )
+            await bot.send_message(chat_id=chat_id, text='Great, press subscribe and get started!', reply_markup=reply_markup)
+            
         else:
             await bot.send_message(
                 chat_id=chat_id,
