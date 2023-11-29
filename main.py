@@ -90,7 +90,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
         reply_markup = InlineKeyboardMarkup(keyboard)
 
-        bot.send_message(chat_id=chat_id, text='Welcome, please choose a Language:', reply_markup=reply_markup)
+        await bot.send_message(chat_id=chat_id, text='Welcome, please choose a Language:', reply_markup=reply_markup)
 
         await bot.send_message(chat_id=chat_id, text="Welcome, please enter a link to your YouTube/TikTok channel.\n እንኳን ደህና መጣችሁ፣ እባኮትን ወደ YouTube/TikTok ቻናላችሁ የሚወስድ አገናኝ ሊንክ ያስገቡ።")
     elif text == "/subscribe":
