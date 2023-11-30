@@ -130,9 +130,9 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                 
 
             
-            link = result['link']
-            cursor.execute("""UPDATE users SET shared_status=true where chat_id=%s""", (result['chat_id'],))
-            cursor.execute("""UPDATE users SET viewing=%s where chat_id=%s""", (result['chat_id'], chat_id))
+            link = result[1]
+            cursor.execute("""UPDATE users SET shared_status=true where chat_id=%s""", (result[0],))
+            cursor.execute("""UPDATE users SET viewing=%s where chat_id=%s""", (result[0], chat_id))
             conn.commit()
             keyboard = [[InlineKeyboardButton("Subscribed 🫡", callback_data='SUBBED'),
                          InlineKeyboardButton("Already Subscribed 🤝", callback_data='ALREADY_SUBBED')]]
@@ -158,8 +158,8 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                 return
 
 
-            chat_id_store = result['chat_id']
-            link = result['link']
+            chat_id_store = result[0]
+            link = result[1]
             cursor.execute("""UPDATE users SET shared_status=true where chat_id=%s""", (chat_id_store,))
             cursor.execute("""UPDATE users SET viewing=%s where chat_id=%s""", (chat_id_store, chat_id))
             conn.commit()
