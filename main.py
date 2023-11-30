@@ -135,7 +135,16 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
             await bot.send_message(chat_id=chat_id, text="እባኮትን ወደ YouTube/TikTok ቻናላችሁ የሚወስድ አገናኝ ሊንክ ላኩልን።")
 
         elif callback_data == "SUB":
-            cursor.execute("""SELECT chat_id, link from users where shared_status=false ORDER BY last_shared""")
+            cursor.execute("""SELECT chat_id, link 
+                FROM users 
+                WHERE shared_status = false 
+                ORDER BY 
+                    CASE 
+                        WHEN shares < 0 THEN 2 
+                        WHEN shares >= 1 THEN 0 
+                        ELSE 1 
+                    END, 
+                    last_shared ASC;""")
             result = cursor.fetchone()
             cursor.execute("""SELECT language FROM users WHERE chat_id=%s""", (chat_id,))
 
@@ -173,7 +182,16 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
             lang = cursor.fetchone()
 
-            cursor.execute("""SELECT chat_id, link from users where shared_status=false ORDER BY last_shared""")
+            cursor.execute("""SELECT chat_id, link 
+                FROM users 
+                WHERE shared_status = false 
+                ORDER BY 
+                    CASE 
+                        WHEN shares < 0 THEN 2 
+                        WHEN shares >= 1 THEN 0 
+                        ELSE 1 
+                    END, 
+                    last_shared ASC;""")
             result = cursor.fetchone()
             if result is None:
                 default_values = {
@@ -185,18 +203,23 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                     await bot.send_message(chat_id=chat_id, text="ይቅርታ፣ አሁን ለእርስዎ ተዛማጅ ማግኘት አልቻልንም። ከትንሽ ቆይታ በኋላ እንደገና ይሞክሩ።")
                 else:
                     await bot.send_message(chat_id=chat_id, text="Sorry, we can't pair you up right now. Check back in a little while.")
+                cursor.execute("""SELECT viewing FROM users WHERE chat_id=%s""", (chat_id,))
+
+                result = cursor.fetchone()
+                cursor.execute("""UPDATE users SET shared_status = false where chat_id = %s""", (result[0],))
+                conn.commit()
                 return
 
 
             chat_id_store = result[0]
             link = result[1]
             cursor.execute("""UPDATE users SET shared_status=true where chat_id=%s""", (chat_id_store,))
-            cursor.execute("""UPDATE users SET viewing=%s where chat_id=%s""", (chat_id_store, chat_id))
-            conn.commit()
+            
             cursor.execute("""SELECT viewing FROM users WHERE chat_id=%s""", (chat_id,))
 
             result = cursor.fetchone()
             cursor.execute("""UPDATE users SET shared_status = false where chat_id = %s""", (result[0],))
+            cursor.execute("""UPDATE users SET viewing=%s where chat_id=%s""", (chat_id_store, chat_id))
             conn.commit()
             keyboard = [[InlineKeyboardButton("Subscribed 🫡", callback_data="SUBBED"),
                          InlineKeyboardButton("Already Subscribed 🤝", callback_data="ALREADY_SUBBED")]]
@@ -238,11 +261,9 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
             cursor.execute("""
                 UPDATE users 
-                SET last_shared = CASE 
-                    WHEN shares = 0 THEN NOW() 
-                    ELSE last_shared 
-                END,
-                shares = shares + 1 
+                SET last_shared = last_shared,
+                shares = shares + 1,
+                viewing = NULL,
                 WHERE chat_id = %s
                 """, (chat_id,))
             
