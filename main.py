@@ -132,7 +132,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                 cursor.execute("""UPDATE users SET language=%s where chat_id=%s""", ("AM", chat_id,))
             
             conn.commit()
-            await bot.send_message(chat_id=chat_id, text="እባኮትን ወደ YouTube/TikTok ቻናላችሁ የሚወስድ አገናኝ ሊንክ ያስገቡ።")
+            await bot.send_message(chat_id=chat_id, text="እባኮትን ወደ YouTube/TikTok ቻናላችሁ የሚወስድ አገናኝ ሊንክ ላኩልን።")
 
         elif callback_data == "SUB":
             cursor.execute("""SELECT chat_id, link from users where shared_status=false ORDER BY last_shared""")
@@ -162,7 +162,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
             reply_markup = InlineKeyboardMarkup(keyboard)
             if lang[0] == "AM":
-                await bot.send_message(chat_id=chat_id, text=link + '\nአንዴ ከተመዘገቡ በኋላ "Subscribed" የሚለውን ይጫኑ ወይም ከላይ ላለው ሊንክ ቀድሞ ከተመዘገቡ "Already Subscribed" የሚለውን ይጫኑ።', reply_markup=reply_markup)
+                await bot.send_message(chat_id=chat_id, text=link + '\nአንዴ ከተመዘገቡ በኋላ "Subscribed" የሚለውን ይጫኑ ወይም ደሞ፤ ከላይ ላለው ሊንክ ቀድሞ ከተመዘገቡ "Already Subscribed" የሚለውን ይጫኑ።', reply_markup=reply_markup)
             else:
                 await bot.send_message(chat_id=chat_id, text=link + '\nPress "Subscribed" once subscribed, or "Already Subscribed" if you are already subscribed to the link above.', reply_markup=reply_markup)
            
@@ -205,11 +205,12 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
             
             
             if lang[0] == "AM":
-                await bot.send_message(chat_id=chat_id, text=link + '\nአንዴ ከተመዘገቡ በኋላ "Subscribed" የሚለውን ይጫኑ ወይም ከላይ ላለው ሊንክ ቀድሞ ከተመዘገቡ "Already Subscribed" የሚለውን ይጫኑ።', reply_markup=reply_markup)
-                await bot.send_message(chat_id=chat_id, text="ይቅርታ፣ መመዝገብ የምትችሉበትን አዲስ ቻናል አዘጋጃለሁ። እርስዎን ማጣመር ካልቻልን ትንሽ ጊዜ ይመለሱ።")
+                await bot.send_message(chat_id=chat_id, text="ይቅርታ፣ መመዝገብ የምትችሉበትን አዲስ ቻናል እናዘጋጃለን። ተመሳሳይ ቻናሎች ደጋግመው ካገኙ ደሞ፤ ትንሽ ጊዜ ጠብቀው ይመለሱ።")
+                await bot.send_message(chat_id=chat_id, text=link + '\nአንዴ ከተመዘገቡ በኋላ "Subscribed" የሚለውን ይጫኑ ወይም ደሞ፤ ከላይ ላለው ሊንክ ቀድሞ ከተመዘገቡ "Already Subscribed" የሚለውን ይጫኑ።', reply_markup=reply_markup)
+                
 
             else:
-                await bot.send_message(chat_id=chat_id, text="Sorry about that, I will generate a new channel you can subscribe to. Check back in a little while if we can't pair you up.")
+                await bot.send_message(chat_id=chat_id, text="Sorry about that, I will generate a new channel you can subscribe to. Check back in a little while if you keep getting the same channels.")
                 await bot.send_message(chat_id=chat_id, text=link + '\nPress "Subscribed" once subscribed, or "Already Subscribed" if you are already subscribed to the link above.', reply_markup=reply_markup)
 
 
@@ -230,7 +231,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
             if result is None:
                 if lang[0] == "AM":
-                    await bot.send_message(chat_id=chat_id, text='ለደንበኝነት ለመመዝገብ ከ20 ደቂቃ በላይ ወስደዋል፣ እባክዎ እንደገና ይሞክሩ!', reply_markup=reply_markup)
+                    await bot.send_message(chat_id=chat_id, text='"Subscribe" ለማድረግ ከ20 ደቂቃ በላይ ወስደዋል፣ እባክዎ እንደገና ይሞክሩ!', reply_markup=reply_markup)
                 else:
                     await bot.send_message(chat_id=chat_id, text='You have taken more than 20 minutes to subscribe, please try again!', reply_markup=reply_markup)
                 return
@@ -250,7 +251,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
             if lang[0] == "AM":
                 await bot.send_message(
                         chat_id=chat_id,
-                        text="ለደንበኝነት ስለተመዘገቡ እናመሰግናለን፣ አሁን ሌላ ሰው ይመዘገባልዎታል።"
+                        text="'Subscribe' ስላደረጉ እናመሰግናለን፣ አሁን ሌላ ሰው ለናንተ 'Subscribe' ያደርግላችሗል።"
                         , reply_markup=reply_markup
                     )
                 cursor.execute("""SELECT language FROM users WHERE chat_id=%s""", (result[0],))
@@ -259,7 +260,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                 if lang2[0] == "AM":
                     await bot.send_message(
                             chat_id=result[0],
-                            text="አዲስ ተጠቃሚ ለእርስዎ መመዝገብ ነበረበት፣ ካላደረጉት /report ያድርጉ እና ይታገዳሉ።"
+                            text="አዲስ 'Subscriber' ለእርስዎ መመዝገብ አለበት፣ ካላደረጉ /report ያድርጉ እና ይታገዳሉ።"
                             , reply_markup=reply_markup
                         )
                 else:
@@ -280,7 +281,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                 if lang2[0] == "AM":
                     await bot.send_message(
                             chat_id=result[0],
-                            text="አዲስ ተጠቃሚ ለእርስዎ መመዝገብ ነበረበት፣ ካላደረጉት /report ያድርጉ እና ይታገዳሉ።"
+                            text="አዲስ 'Subscriber' ለእርስዎ መመዝገብ አለበት፣ ካላደረጉ /report ያድርጉ እና ይታገዳሉ።"
                             , reply_markup=reply_markup
                         )
                 else:
@@ -298,11 +299,11 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
         reply_markup = InlineKeyboardMarkup(keyboard)
         if lang[0] == "AM":
-                    await bot.send_message(chat_id=chat_id, text='የእርስዎ ሪፖርት ታውቋል እና ስርዓቱ ተጠቃሚውን ይከለክላል። አመሰግናለሁ!', reply_markup=reply_markup)
+                    await bot.send_message(chat_id=chat_id, text='የእርስዎ ሪፖርት ተመዝግቧል እና ለደንበኝነት መመዝገብ የነበረበት ተጠቃሚ ይታገዳል። እናመሰግናለን!', reply_markup=reply_markup)
         else:
                     await bot.send_message(
                     chat_id=chat_id,
-                    text="Your Report has been noted and the system will ban the user. Thank you."
+                    text="Your Report has been noted and the system will ban the user who should have subscribed. Thank you!"
                     ,reply_markup=reply_markup
                     
            )
