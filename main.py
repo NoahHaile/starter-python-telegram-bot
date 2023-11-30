@@ -92,7 +92,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
     if text == "/start":
         keyboard = [[InlineKeyboardButton("English 🇺🇸", callback_data='EN'),
-                 InlineKeyboardButton("አማርኛ 🇪🇹", callback_data='AM')]]
+                 InlineKeyboardButton("አማርኛ 🇪🇹 (ሙከራ)", callback_data='AM')]]
 
         reply_markup = InlineKeyboardMarkup(keyboard)
 
