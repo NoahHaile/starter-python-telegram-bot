@@ -152,7 +152,6 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                 }
 
                 await bot.send_message(chat_id=chat_id, text="Sorry, we can't pair you up right now. Check back in a little while.")
-                await bot.send_message(chat_id=chat_id, text="Brought to you by... " + default_values["link"])
                 return
 
 
@@ -164,7 +163,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
             cursor.execute("""SELECT viewing FROM users WHERE chat_id=%s""", (chat_id,))
 
             result = cursor.fetchone()
-            cursor.execute("""UPDATE users SET shared_status = false where chat_id = %s""", (result["viewing"],))
+            cursor.execute("""UPDATE users SET shared_status = false where chat_id = %s""", (result[0],))
             conn.commit()
             keyboard = [[InlineKeyboardButton("Subscribed 🫡", callback_data='SUBBED'),
                          InlineKeyboardButton("Already Subscribed 🤝", callback_data='ALREADY_SUBBED')]]
@@ -200,7 +199,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                 WHERE chat_id = %s
                 """, (chat_id,))
             
-            cursor.execute("""UPDATE users SET shares = shares - 1, last_shared = NOW(), shared_status = false where chat_id = %s""", (result["viewing"],))
+            cursor.execute("""UPDATE users SET shares = shares - 1, last_shared = NOW(), shared_status = false where chat_id = %s""", (result[0],))
             conn.commit()
             
             await bot.send_message(
@@ -209,7 +208,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                     , reply_markup=reply_markup
                 )
             await bot.send_message(
-                    chat_id=result["viewing"],
+                    chat_id=result[0],
                     text="A new user should have subscribed to you, /report them if they haven't and they will be banned."
                     , reply_markup=reply_markup
                 )
