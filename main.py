@@ -176,13 +176,14 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
 
         elif text == "SUBBED":
+            
             cursor.execute("""SELECT viewing FROM users WHERE chat_id=%s""", (chat_id,))
 
             result = cursor.fetchone()
 
             keyboard = [[InlineKeyboardButton("Get more Subscribers 👍🏽", callback_data='SUB')]]
 
-
+            print("jkgjhgjgjhgjkgkjhgjhkgjhkgkj" + result)
             reply_markup = InlineKeyboardMarkup(keyboard)
 
             if result is None:
