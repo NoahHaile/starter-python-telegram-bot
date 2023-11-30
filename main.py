@@ -125,7 +125,6 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                     'link': "https://vm.tiktok.com/ZM6euGGGA/"
                 }
                 await bot.send_message(chat_id=chat_id, text="Sorry, we can't pair you up right now. Check back in a little while.")
-                await bot.send_message(chat_id=chat_id, text="Brought to you by... " + default_values["link"])
                 return
                 
 
@@ -139,7 +138,6 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
             reply_markup = InlineKeyboardMarkup(keyboard)
 
-            await bot.send_message(chat_id=chat_id, text=link)
             await bot.send_message(chat_id=chat_id, text=link + '\nPress "Subscribed" once subscribed, or "Already Subscribed" if you are already subscribed to the link above.', reply_markup=reply_markup)
            
 
