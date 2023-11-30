@@ -62,7 +62,7 @@ bot = Bot(token=bot_token)
 
 async def checkForAssholes():
     while True:
-        await asyncio.sleep(6000)
+        await asyncio.sleep(1200)
         print("Asshole Damage cleared")
         cursor.execute("""UPDATE users
             SET shared_status = false
@@ -110,11 +110,27 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
         # Process the callback data
         if callback_data == "EN":
-            cursor.execute("""UPDATE users SET language=%s where chat_id=%s""", ("EN", chat_id,))
+            cursor.execute("""SELECT chat_id FROM users WHERE chat_id=%s""", (chat_id,))
+
+            row = cursor.fetchone()
+            if row is None:
+                cursor.execute("""INSERT INTO users (link, chat_id, language) VALUES (%s, %s)""", (received_link, chat_id, "EN",))
+            else:
+                cursor.execute("""UPDATE users SET language=%s where chat_id=%s""", ("EN", chat_id,))
+            
+            
             conn.commit()
             await bot.send_message(chat_id=chat_id, text="Please enter a link to your YouTube/TikTok channel.")
         elif callback_data == "AM":
-            cursor.execute("""UPDATE users SET language=%s where chat_id=%s""", ("AM", chat_id,))
+
+            cursor.execute("""SELECT chat_id FROM users WHERE chat_id=%s""", (chat_id,))
+
+            row = cursor.fetchone()
+            if row is None:
+                cursor.execute("""INSERT INTO users (link, chat_id, language) VALUES (%s, %s)""", (received_link, chat_id, "AM",))
+            else:
+                cursor.execute("""UPDATE users SET language=%s where chat_id=%s""", ("AM", chat_id,))
+            
             conn.commit()
             await bot.send_message(chat_id=chat_id, text="እባኮትን ወደ YouTube/TikTok ቻናላችሁ የሚወስድ አገናኝ ሊንክ ያስገቡ።")
 
@@ -278,12 +294,16 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
         cursor.execute("""SELECT language FROM users WHERE chat_id=%s""", (chat_id,))
 
         lang = cursor.fetchone()
+        keyboard = [[InlineKeyboardButton("Start Subscribing 👍🏽", callback_data='SUB')]]
+
+        reply_markup = InlineKeyboardMarkup(keyboard)
         if lang[0] == "AM":
-                    await bot.send_message(chat_id=chat_id, text='የእርስዎ ሪፖርት ታውቋል እና ስርዓቱ ተጠቃሚውን ይከለክላል። አመሰግናለሁ!')
+                    await bot.send_message(chat_id=chat_id, text='የእርስዎ ሪፖርት ታውቋል እና ስርዓቱ ተጠቃሚውን ይከለክላል። አመሰግናለሁ!', reply_markup=reply_markup)
         else:
                     await bot.send_message(
                     chat_id=chat_id,
                     text="Your Report has been noted and the system will ban the user. Thank you."
+                    ,reply_markup=reply_markup
                     
            )
         
