@@ -137,7 +137,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
         elif callback_data == "SUB":
             cursor.execute("""SELECT chat_id, link 
                 FROM users 
-                WHERE shared_status = %s AND chat_id != %s
+                WHERE shared_status == %s AND chat_id != %s
                 ORDER BY 
                     CASE 
                         WHEN shares < 0 THEN 2 
@@ -184,7 +184,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
             cursor.execute("""SELECT chat_id, link 
                 FROM users 
-                WHERE shared_status = %s AND chat_id != %s
+                WHERE shared_status == %s AND chat_id != %s
                 ORDER BY 
                     CASE 
                         WHEN shares < 0 THEN 2 
