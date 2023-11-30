@@ -104,7 +104,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
         query = update.callback_query
         chat_id = query["message"]["chat"]["id"]
         callback_data = query["data"]
-        
+        print(callback_data)
         # Acknowledge the callback query
         await bot.answer_callback_query(callback_query_id=query["id"])
 
