@@ -121,7 +121,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
         elif callback_data == "SUB":
             cursor.execute("""SELECT chat_id, link from users where shared_status=false ORDER BY last_shared""")
             result = cursor.fetchone()
-            cursor.execute("""SELECT langauge FROM users WHERE chat_id=%s""", (chat_id,))
+            cursor.execute("""SELECT language FROM users WHERE chat_id=%s""", (chat_id,))
 
             lang = cursor.fetchone()
             if result is None:
@@ -153,7 +153,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
         elif callback_data == "ALREADY_SUBBED":
 
-            cursor.execute("""SELECT langauge FROM users WHERE chat_id=%s""", (chat_id,))
+            cursor.execute("""SELECT language FROM users WHERE chat_id=%s""", (chat_id,))
 
             lang = cursor.fetchone()
 
@@ -199,7 +199,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
         elif callback_data == "SUBBED":
 
-            cursor.execute("""SELECT langauge FROM users WHERE chat_id=%s""", (chat_id,))
+            cursor.execute("""SELECT language FROM users WHERE chat_id=%s""", (chat_id,))
 
             lang = cursor.fetchone()
             
@@ -275,7 +275,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                 )
     elif text == '/report':
            
-        cursor.execute("""SELECT langauge FROM users WHERE chat_id=%s""", (chat_id,))
+        cursor.execute("""SELECT language FROM users WHERE chat_id=%s""", (chat_id,))
 
         lang = cursor.fetchone()
         if lang[0] == "AM":
@@ -290,7 +290,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
            
     else:
         user_message = text
-        cursor.execute("""SELECT langauge FROM users WHERE chat_id=%s""", (chat_id,))
+        cursor.execute("""SELECT language FROM users WHERE chat_id=%s""", (chat_id,))
 
         lang = cursor.fetchone()
         # Check if the message looks like a link
