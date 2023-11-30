@@ -141,7 +141,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
             await bot.send_message(chat_id=chat_id, text=link + '\nPress "Subscribed" once subscribed, or "Already Subscribed" if you are already subscribed to the link above.', reply_markup=reply_markup)
            
 
-        elif text == "ALREADY_SUBBED":
+        elif callback_data == "ALREADY_SUBBED":
 
             cursor.execute("""SELECT chat_id, link from users where shared_status=false ORDER BY last_shared""")
             result = cursor.fetchone()
@@ -175,7 +175,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
             await bot.send_message(chat_id=chat_id, text=link + '\nPress "Subscribed" once subscribed, or "Already Subscribed" if you are already subscribed to the link above.', reply_markup=reply_markup)
 
 
-        elif text == "SUBBED":
+        elif callback_data == "SUBBED":
             print("jkgjhgjgjhgjkgkjhgjhkgjhkgkj")
             cursor.execute("""SELECT viewing FROM users WHERE chat_id=%s""", (chat_id,))
 
