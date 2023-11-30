@@ -217,8 +217,8 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
             conn.commit()
             cursor.execute("""SELECT viewing FROM users WHERE chat_id=%s""", (chat_id,))
 
-            result = cursor.fetchone()
-            cursor.execute("""UPDATE users SET shared_status = %s where chat_id = %s""", (False, result[0],))
+            viewing = cursor.fetchone()
+            cursor.execute("""UPDATE users SET shared_status = %s where chat_id = %s""", (False, viewing[0],))
             conn.commit()
             cursor.execute("""UPDATE users SET viewing=%s where chat_id=%s""", (chat_id_store, chat_id))
             conn.commit()
