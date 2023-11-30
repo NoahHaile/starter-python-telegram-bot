@@ -137,7 +137,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
         elif callback_data == "SUB":
             cursor.execute("""SELECT chat_id, link 
                 FROM users 
-                WHERE shared_status = false AND chat_id !== %s
+                WHERE shared_status = false AND chat_id != %s
                 ORDER BY 
                     CASE 
                         WHEN shares < 0 THEN 2 
@@ -184,7 +184,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
             cursor.execute("""SELECT chat_id, link 
                 FROM users 
-                WHERE shared_status = false AND chat_id !== %s
+                WHERE shared_status = false AND chat_id != %s
                 ORDER BY 
                     CASE 
                         WHEN shares < 0 THEN 2 
@@ -338,7 +338,8 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
         # Check if the message looks like a link
         if is_valid_url(user_message):
             received_link = re.search(r'https?://\S+', user_message).group()
-            cursor.execute("""INSERT INTO users (link, chat_id, shared_status) VALUES (%s, %s, %s)""", (received_link, chat_id, False))
+            
+            cursor.execute("""UPDATE users SET link = %s, shared_status = false where chat_id = %s""", (received_link, chat_id, ))
             
             conn.commit()
             keyboard = [[InlineKeyboardButton("Start Subscribing 👍🏽", callback_data='SUB')]]
