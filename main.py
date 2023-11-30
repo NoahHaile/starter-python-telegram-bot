@@ -65,9 +65,9 @@ async def checkForAssholes():
         await asyncio.sleep(1200)
         print("Asshole Damage cleared")
         cursor.execute("""UPDATE users
-            SET shared_status = false
+            SET shared_status = %s
             WHERE last_shared IS NOT NULL
-            AND EXTRACT(EPOCH FROM (NOW() - last_shared)) > 1200;""" )
+            AND EXTRACT(EPOCH FROM (NOW() - last_shared)) > 1200;""", (False, ) )
         conn.commit()
 
 loop = asyncio.get_event_loop()
@@ -137,14 +137,14 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
         elif callback_data == "SUB":
             cursor.execute("""SELECT chat_id, link 
                 FROM users 
-                WHERE shared_status = false AND chat_id != %s
+                WHERE shared_status = %s AND chat_id != %s
                 ORDER BY 
                     CASE 
                         WHEN shares < 0 THEN 2 
                         WHEN shares >= 1 THEN 0 
                         ELSE 1 
                     END, 
-                    last_shared ASC;""", (chat_id,))
+                    last_shared ASC;""", (False, chat_id,))
             result = cursor.fetchone()
             cursor.execute("""SELECT language FROM users WHERE chat_id=%s""", (chat_id,))
 
@@ -163,7 +163,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
             
             link = result[1]
-            cursor.execute("""UPDATE users SET shared_status=true where chat_id=%s""", (result[0],))
+            cursor.execute("""UPDATE users SET shared_status=%s where chat_id=%s""", (True, result[0],))
             cursor.execute("""UPDATE users SET viewing=%s where chat_id=%s""", (result[0], chat_id))
             conn.commit()
             keyboard = [[InlineKeyboardButton("Subscribed 🫡", callback_data="SUBBED"),
@@ -184,14 +184,14 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
             cursor.execute("""SELECT chat_id, link 
                 FROM users 
-                WHERE shared_status = false AND chat_id != %s
+                WHERE shared_status = %s AND chat_id != %s
                 ORDER BY 
                     CASE 
                         WHEN shares < 0 THEN 2 
                         WHEN shares >= 1 THEN 0 
                         ELSE 1 
                     END, 
-                    last_shared ASC;""", (chat_id,))
+                    last_shared ASC;""", (False, chat_id,))
             result = cursor.fetchone()
             if result is None:
                 default_values = {
@@ -206,19 +206,19 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                 cursor.execute("""SELECT viewing FROM users WHERE chat_id=%s""", (chat_id,))
 
                 result = cursor.fetchone()
-                cursor.execute("""UPDATE users SET shared_status = false where chat_id = %s""", (result[0],))
+                cursor.execute("""UPDATE users SET shared_status = %s where chat_id = %s""", (False, result[0],))
                 conn.commit()
                 return
 
 
             chat_id_store = result[0]
             link = result[1]
-            cursor.execute("""UPDATE users SET shared_status=true where chat_id=%s""", (chat_id_store,))
+            cursor.execute("""UPDATE users SET shared_status=%s where chat_id=%s""", (True, chat_id_store,))
             
             cursor.execute("""SELECT viewing FROM users WHERE chat_id=%s""", (chat_id,))
 
             result = cursor.fetchone()
-            cursor.execute("""UPDATE users SET shared_status = false where chat_id = %s""", (result[0],))
+            cursor.execute("""UPDATE users SET shared_status = %s where chat_id = %s""", (False, result[0],))
             cursor.execute("""UPDATE users SET viewing=%s where chat_id=%s""", (chat_id_store, chat_id))
             conn.commit()
             keyboard = [[InlineKeyboardButton("Subscribed 🫡", callback_data="SUBBED"),
@@ -267,7 +267,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                 WHERE chat_id = %s
                 """, (chat_id,))
             
-            cursor.execute("""UPDATE users SET shares = shares - 1, last_shared = NOW(), shared_status = false where chat_id = %s""", (result[0],))
+            cursor.execute("""UPDATE users SET shares = shares - 1, last_shared = NOW(), shared_status = %s where chat_id = %s""", (False, result[0],))
             conn.commit()
             if lang[0] == "AM":
                 await bot.send_message(
@@ -339,7 +339,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
         if is_valid_url(user_message):
             received_link = re.search(r'https?://\S+', user_message).group()
             
-            cursor.execute("""UPDATE users SET link = %s, shared_status = false where chat_id = %s""", (received_link, chat_id, ))
+            cursor.execute("""UPDATE users SET link = %s, shared_status = %s where chat_id = %s""", (received_link, False, chat_id, ))
             
             conn.commit()
             keyboard = [[InlineKeyboardButton("Start Subscribing 👍🏽", callback_data='SUB')]]
