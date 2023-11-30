@@ -110,21 +110,29 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
         # Process the callback data
         if callback_data == "EN":
-            
+            cursor.execute("""UPDATE users SET language=%s where chat_id=%s""", ("EN", chat_id,))
+            conn.commit()
             await bot.send_message(chat_id=chat_id, text="Please enter a link to your YouTube/TikTok channel.")
         elif callback_data == "AM":
-            
+            cursor.execute("""UPDATE users SET language=%s where chat_id=%s""", ("AM", chat_id,))
+            conn.commit()
             await bot.send_message(chat_id=chat_id, text="እባኮትን ወደ YouTube/TikTok ቻናላችሁ የሚወስድ አገናኝ ሊንክ ያስገቡ።")
 
         elif callback_data == "SUB":
             cursor.execute("""SELECT chat_id, link from users where shared_status=false ORDER BY last_shared""")
             result = cursor.fetchone()
+            cursor.execute("""SELECT langauge FROM users WHERE chat_id=%s""", (chat_id,))
+
+            lang = cursor.fetchone()
             if result is None:
                 default_values = {
                     'chat_id': 6081026054,
                     'link': "https://vm.tiktok.com/ZM6euGGGA/"
                 }
-                await bot.send_message(chat_id=chat_id, text="Sorry, we can't pair you up right now. Check back in a little while.")
+                if lang[0] == "AM":
+                    await bot.send_message(chat_id=chat_id, text="ይቅርታ፣ አሁን ለእርስዎ ተዛማጅ ማግኘት አልቻልንም። ከትንሽ ቆይታ በኋላ እንደገና ይሞክሩ።")
+                else:
+                    await bot.send_message(chat_id=chat_id, text="Sorry, we can't pair you up right now. Check back in a little while.")
                 return
                 
 
@@ -137,11 +145,17 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                          InlineKeyboardButton("Already Subscribed 🤝", callback_data="ALREADY_SUBBED")]]
 
             reply_markup = InlineKeyboardMarkup(keyboard)
-
-            await bot.send_message(chat_id=chat_id, text=link + '\nPress "Subscribed" once subscribed, or "Already Subscribed" if you are already subscribed to the link above.', reply_markup=reply_markup)
+            if lang[0] == "AM":
+                await bot.send_message(chat_id=chat_id, text=link + '\nአንዴ ከተመዘገቡ በኋላ "Subscribed" የሚለውን ይጫኑ ወይም ከላይ ላለው ሊንክ ቀድሞ ከተመዘገቡ "Already Subscribed" የሚለውን ይጫኑ።', reply_markup=reply_markup)
+            else:
+                await bot.send_message(chat_id=chat_id, text=link + '\nPress "Subscribed" once subscribed, or "Already Subscribed" if you are already subscribed to the link above.', reply_markup=reply_markup)
            
 
         elif callback_data == "ALREADY_SUBBED":
+
+            cursor.execute("""SELECT langauge FROM users WHERE chat_id=%s""", (chat_id,))
+
+            lang = cursor.fetchone()
 
             cursor.execute("""SELECT chat_id, link from users where shared_status=false ORDER BY last_shared""")
             result = cursor.fetchone()
@@ -151,7 +165,10 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                     'link': "https://vm.tiktok.com/ZM6euGGGA/"
                 }
 
-                await bot.send_message(chat_id=chat_id, text="Sorry, we can't pair you up right now. Check back in a little while.")
+                if lang[0] == "AM":
+                    await bot.send_message(chat_id=chat_id, text="ይቅርታ፣ አሁን ለእርስዎ ተዛማጅ ማግኘት አልቻልንም። ከትንሽ ቆይታ በኋላ እንደገና ይሞክሩ።")
+                else:
+                    await bot.send_message(chat_id=chat_id, text="Sorry, we can't pair you up right now. Check back in a little while.")
                 return
 
 
@@ -170,13 +187,22 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
             reply_markup = InlineKeyboardMarkup(keyboard)
             
-            await bot.send_message(chat_id=chat_id, text="Sorry about that, I will generate a new channel you can subscribe to. Check back in a little while if we can't pair you up.")
-            await bot.send_message(chat_id=chat_id, text=link)
-            await bot.send_message(chat_id=chat_id, text=link + '\nPress "Subscribed" once subscribed, or "Already Subscribed" if you are already subscribed to the link above.', reply_markup=reply_markup)
+            
+            if lang[0] == "AM":
+                await bot.send_message(chat_id=chat_id, text=link + '\nአንዴ ከተመዘገቡ በኋላ "Subscribed" የሚለውን ይጫኑ ወይም ከላይ ላለው ሊንክ ቀድሞ ከተመዘገቡ "Already Subscribed" የሚለውን ይጫኑ።', reply_markup=reply_markup)
+                await bot.send_message(chat_id=chat_id, text="ይቅርታ፣ መመዝገብ የምትችሉበትን አዲስ ቻናል አዘጋጃለሁ። እርስዎን ማጣመር ካልቻልን ትንሽ ጊዜ ይመለሱ።")
+
+            else:
+                await bot.send_message(chat_id=chat_id, text="Sorry about that, I will generate a new channel you can subscribe to. Check back in a little while if we can't pair you up.")
+                await bot.send_message(chat_id=chat_id, text=link + '\nPress "Subscribed" once subscribed, or "Already Subscribed" if you are already subscribed to the link above.', reply_markup=reply_markup)
 
 
         elif callback_data == "SUBBED":
-            print("jkgjhgjgjhgjkgkjhgjhkgjhkgkj")
+
+            cursor.execute("""SELECT langauge FROM users WHERE chat_id=%s""", (chat_id,))
+
+            lang = cursor.fetchone()
+            
             cursor.execute("""SELECT viewing FROM users WHERE chat_id=%s""", (chat_id,))
 
             result = cursor.fetchone()
@@ -187,8 +213,10 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
             reply_markup = InlineKeyboardMarkup(keyboard)
 
             if result is None:
-                
-                await bot.send_message(chat_id=chat_id, text='You have taken more than 20 minutes to subscribe, please try again!', reply_markup=reply_markup)
+                if lang[0] == "AM":
+                    await bot.send_message(chat_id=chat_id, text='ለደንበኝነት ለመመዝገብ ከ20 ደቂቃ በላይ ወስደዋል፣ እባክዎ እንደገና ይሞክሩ!', reply_markup=reply_markup)
+                else:
+                    await bot.send_message(chat_id=chat_id, text='You have taken more than 20 minutes to subscribe, please try again!', reply_markup=reply_markup)
                 return
 
             cursor.execute("""
@@ -203,25 +231,68 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
             
             cursor.execute("""UPDATE users SET shares = shares - 1, last_shared = NOW(), shared_status = false where chat_id = %s""", (result[0],))
             conn.commit()
-            
-            await bot.send_message(
-                    chat_id=chat_id,
-                    text="Thank You for subscribing, now someone else will subscribe to you."
+            if lang[0] == "AM":
+                await bot.send_message(
+                        chat_id=chat_id,
+                        text="ለደንበኝነት ስለተመዘገቡ እናመሰግናለን፣ አሁን ሌላ ሰው ይመዘገባልዎታል።"
+                        , reply_markup=reply_markup
+                    )
+                cursor.execute("""SELECT language FROM users WHERE chat_id=%s""", (result[0],))
+
+                lang2 = cursor.fetchone()
+                if lang2[0] == "AM":
+                    await bot.send_message(
+                            chat_id=result[0],
+                            text="አዲስ ተጠቃሚ ለእርስዎ መመዝገብ ነበረበት፣ ካላደረጉት /report ያድርጉ እና ይታገዳሉ።"
+                            , reply_markup=reply_markup
+                        )
+                else:
+                    await bot.send_message(
+                    chat_id=result[0],
+                    text="A new user should have subscribed to you, /report them if they haven't and they will be banned."
                     , reply_markup=reply_markup
                 )
-            await bot.send_message(
+            else:
+                await bot.send_message(
+                        chat_id=chat_id,
+                        text="Thank You for subscribing, now someone else will subscribe to you."
+                        , reply_markup=reply_markup
+                    )
+                cursor.execute("""SELECT language FROM users WHERE chat_id=%s""", (result[0],))
+
+                lang2 = cursor.fetchone()
+                if lang2[0] == "AM":
+                    await bot.send_message(
+                            chat_id=result[0],
+                            text="አዲስ ተጠቃሚ ለእርስዎ መመዝገብ ነበረበት፣ ካላደረጉት /report ያድርጉ እና ይታገዳሉ።"
+                            , reply_markup=reply_markup
+                        )
+                else:
+                    await bot.send_message(
                     chat_id=result[0],
                     text="A new user should have subscribed to you, /report them if they haven't and they will be banned."
                     , reply_markup=reply_markup
                 )
     elif text == '/report':
-           await bot.send_message(
+           
+        cursor.execute("""SELECT langauge FROM users WHERE chat_id=%s""", (chat_id,))
+
+        lang = cursor.fetchone()
+        if lang[0] == "AM":
+                    await bot.send_message(chat_id=chat_id, text='የእርስዎ ሪፖርት ታውቋል እና ስርዓቱ ተጠቃሚውን ይከለክላል። አመሰግናለሁ!')
+        else:
+                    await bot.send_message(
                     chat_id=chat_id,
-                    text="Your Report has been noted and the system will put the user under review. Thank you."
+                    text="Your Report has been noted and the system will ban the user. Thank you."
                     
            )
+        
+           
     else:
         user_message = text
+        cursor.execute("""SELECT langauge FROM users WHERE chat_id=%s""", (chat_id,))
+
+        lang = cursor.fetchone()
         # Check if the message looks like a link
         if is_valid_url(user_message):
             received_link = re.search(r'https?://\S+', user_message).group()
@@ -235,13 +306,24 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                 chat_id=chat_id,
                 text=f"Thank you for providing the link: {received_link}"
             )
-            await bot.send_message(chat_id=chat_id, text='Great, press subscribe and get started!', reply_markup=reply_markup)
+            
+            if lang[0] == "AM":
+                await bot.send_message(chat_id=chat_id, text='በጣም ጥሩ፣ እባክዎን ሰብስክራይብ የሚለውን ቁልፍ ይጫኑ እና ይጀምሩ!', reply_markup=reply_markup)
+            else:
+                await bot.send_message(chat_id=chat_id, text='Great, press subscribe and get started!', reply_markup=reply_markup)
             
         else:
-            await bot.send_message(
-                chat_id=chat_id,
-                text="Sorry, I don't think that is quite right. Please enter a valid link."
-            )
+            if lang[0] == "AM":
+                await bot.send_message(
+                    chat_id=chat_id,
+                    text="ይቅርታ፣ አገናኙ ትክክል አይመስለኝም። እባክዎ ትክክለኛ አገናኝ ያስገቡ።"
+                )
+
+            else:
+                await bot.send_message(
+                    chat_id=chat_id,
+                    text="Sorry, I don't think that is quite right. Please enter a valid link."
+                )
 
     return {"ok": True}
 
