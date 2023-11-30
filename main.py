@@ -137,14 +137,14 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
         elif callback_data == "SUB":
             cursor.execute("""SELECT chat_id, link 
                 FROM users 
-                WHERE shared_status = false 
+                WHERE shared_status = false AND chat_id !== %s
                 ORDER BY 
                     CASE 
                         WHEN shares < 0 THEN 2 
                         WHEN shares >= 1 THEN 0 
                         ELSE 1 
                     END, 
-                    last_shared ASC;""")
+                    last_shared ASC;""", (chat_id,))
             result = cursor.fetchone()
             cursor.execute("""SELECT language FROM users WHERE chat_id=%s""", (chat_id,))
 
@@ -184,14 +184,14 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
             cursor.execute("""SELECT chat_id, link 
                 FROM users 
-                WHERE shared_status = false 
+                WHERE shared_status = false AND chat_id !== %s
                 ORDER BY 
                     CASE 
                         WHEN shares < 0 THEN 2 
                         WHEN shares >= 1 THEN 0 
                         ELSE 1 
                     END, 
-                    last_shared ASC;""")
+                    last_shared ASC;""", (chat_id,))
             result = cursor.fetchone()
             if result is None:
                 default_values = {
