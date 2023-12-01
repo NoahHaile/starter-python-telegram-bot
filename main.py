@@ -60,9 +60,8 @@ bot = Bot(token=bot_token)
 # webhook_info = bot.get_webhook_info()
 # print(webhook_info)
 
-async def checkForAssholes():
+def checkForAssholes():
     while True:
-        await asyncio.sleep(200)
         print("Asshole Damage cleared")
         cursor.execute("""UPDATE users
             SET shared_status = %s,
@@ -70,9 +69,8 @@ async def checkForAssholes():
             WHERE EXTRACT(EPOCH FROM (NOW() - last_shared)) > 1200 AND link != "User has not yet input a link";""", (False, ) )
         conn.commit()
 
-loop = asyncio.get_event_loop()
-loop.create_task(checkForAssholes())
 
+i = 0
 def auth_telegram_token(x_telegram_bot_api_secret_token: str = Header(None)) -> str:
     return True # uncomment to disable authentication
     if x_telegram_bot_api_secret_token != secret_token:
@@ -83,8 +81,11 @@ def auth_telegram_token(x_telegram_bot_api_secret_token: str = Header(None)) -> 
 async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_telegram_token)):
     chat_id = ""
     text = ""
+    if i % 10 == 0:
+        checkForAssholes()
+    i += 1
 
-
+    
     if update.message:
         # Handle message update
         # Extract chat_id and text from update.message
