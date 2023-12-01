@@ -62,12 +62,12 @@ bot = Bot(token=bot_token)
 
 async def checkForAssholes():
     while True:
-        await asyncio.sleep(1200)
+        await asyncio.sleep(200)
         print("Asshole Damage cleared")
         cursor.execute("""UPDATE users
             SET shared_status = %s,
             last_shared = NOW() - INTERVAL '1 year'
-            WHERE EXTRACT(EPOCH FROM (NOW() - last_shared)) > 1200;""", (False, ) )
+            WHERE EXTRACT(EPOCH FROM (NOW() - last_shared)) > 1200 AND link != "User has not yet input a link";""", (False, ) )
         conn.commit()
 
 loop = asyncio.get_event_loop()
