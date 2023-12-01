@@ -62,7 +62,6 @@ bot = Bot(token=bot_token)
 # print(webhook_info)
 
 def checkForAssholes():
-    while True:
         print("Asshole Damage cleared")
         cursor.execute("""UPDATE users
                   SET shared_status = %s,
