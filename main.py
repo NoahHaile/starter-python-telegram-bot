@@ -63,7 +63,11 @@ bot = Bot(token=bot_token)
 def checkForAssholes():
     while True:
         print("Asshole Damage cleared")
-        cursor.execute("""UPDATE users SET shared_status = %s, last_shared = NOW() - INTERVAL '1 year' WHERE EXTRACT(EPOCH FROM (NOW() - last_shared)) > 1200 AND link != "User has not yet input a link";""", (False, ) )
+        cursor.execute("""UPDATE users
+                  SET shared_status = %s,
+                      last_shared = NOW() - INTERVAL '1 year'
+                  WHERE EXTRACT(EPOCH FROM (NOW() - last_shared)) > 1200
+                  AND link != 'User has not yet input a link';""", (False,))
         conn.commit()
 
 
