@@ -298,11 +298,8 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                     await bot.send_message(chat_id=chat_id, text="You haven't added anyone to subscribe to. Please try again!", reply_markup=reply_markup)
                 return
 
-            cursor.execute("""
-                UPDATE users 
-                SET
-                shares = shares + 1,
-                viewing = NULL,
+            cursor.execute("""UPDATE users SET shares = shares + 1,
+                viewing = NULL
                 WHERE chat_id = %s
                 """, (chat_id,))
             
