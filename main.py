@@ -163,7 +163,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
             else:
                 await bot.send_message(chat_id=chat_id, text="Please enter a link to your YouTube/TikTok channel.")
-                
+
         elif callback_data == "SUB":
             cursor.execute("""SELECT chat_id, link 
                 FROM users 
@@ -228,11 +228,15 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                     'chat_id': 6081026054,
                     'link': "https://vm.tiktok.com/ZM6euGGGA/"
                 }
+                keyboard = [[InlineKeyboardButton("Get more Subscribers 👍🏽(COME BACK IN A FEW MINUTES THOUGH)", callback_data='SUB')]]
+
+            
+                reply_markup = InlineKeyboardMarkup(keyboard)
 
                 if lang[0] == "AM":
-                    await bot.send_message(chat_id=chat_id, text="ይቅርታ፣ አሁን ለእርስዎ ተዛማጅ ማግኘት አልቻልንም። ከትንሽ ቆይታ በኋላ እንደገና ይሞክሩ።")
+                    await bot.send_message(chat_id=chat_id, text="ይቅርታ፣ አሁን ለእርስዎ ተዛማጅ ማግኘት አልቻልንም። ከትንሽ ቆይታ በኋላ እንደገና ይሞክሩ።", reply_markup=reply_markup)
                 else:
-                    await bot.send_message(chat_id=chat_id, text="Sorry, we can't pair you up right now. Check back in a little while.")
+                    await bot.send_message(chat_id=chat_id, text="Sorry, we can't pair you up right now. Check back in a little while.", reply_markup=reply_markup)
                 cursor.execute("""SELECT viewing FROM users WHERE chat_id=%s""", (chat_id,))
 
                 result = cursor.fetchone()
