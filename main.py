@@ -65,9 +65,9 @@ async def checkForAssholes():
         await asyncio.sleep(1200)
         print("Asshole Damage cleared")
         cursor.execute("""UPDATE users
-            SET shared_status = %s
-            WHERE last_shared IS NOT NULL
-            AND EXTRACT(EPOCH FROM (NOW() - last_shared)) > 1200;""", (False, ) )
+            SET shared_status = %s,
+            last_shared = NOW() - INTERVAL '1 year'
+            WHERE EXTRACT(EPOCH FROM (NOW() - last_shared)) > 1200;""", (False, ) )
         conn.commit()
 
 loop = asyncio.get_event_loop()
@@ -83,6 +83,8 @@ def auth_telegram_token(x_telegram_bot_api_secret_token: str = Header(None)) -> 
 async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_telegram_token)):
     chat_id = ""
     text = ""
+
+
     if update.message:
         # Handle message update
         # Extract chat_id and text from update.message
@@ -107,7 +109,12 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
         callback_data = query["data"]
         print(callback_data)
         
-
+        cursor.execute("""SELECT chat_id FROM users WHERE chat_id=%s AND shares>=10""", (chat_id,))
+        banned = cursor.fetchone()
+        if banned is not None:
+            await bot.send_message(chat_id=chat_id, text="You have been banned for suspicious activities. If you think this is a mistake, message me at @EthioLite42.")
+            return
+            
         # Process the callback data
         if callback_data == "EN":
             cursor.execute("""SELECT chat_id FROM users WHERE chat_id=%s""", (chat_id,))
@@ -120,7 +127,13 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
             
             
             conn.commit()
-            await bot.send_message(chat_id=chat_id, text="Please enter a link to your YouTube/TikTok channel.")
+
+            keyboard = [[InlineKeyboardButton("Done 👍🏽", callback_data='DONE')]]
+
+            reply_markup = InlineKeyboardMarkup(keyboard)
+
+            await bot.send_message(chat_id=chat_id, text="To get started, follow this channel. If you are already subscribed, just click done... The system will verify it. https://vm.tiktok.com/ZM6euGGGA/", reply_markup=reply_markup)
+            
         elif callback_data == "AM":
 
             cursor.execute("""SELECT chat_id FROM users WHERE chat_id=%s""", (chat_id,))
@@ -132,8 +145,25 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
                 cursor.execute("""UPDATE users SET language=%s where chat_id=%s""", ("AM", chat_id,))
             
             conn.commit()
-            await bot.send_message(chat_id=chat_id, text="እባኮትን ወደ YouTube/TikTok ቻናላችሁ የሚወስድ አገናኝ ሊንክ ላኩልን።")
+            keyboard = [[InlineKeyboardButton("Done 👍🏽", callback_data='DONE')]]
 
+            reply_markup = InlineKeyboardMarkup(keyboard)
+
+            await bot.send_message(chat_id=chat_id, text="ለመጀመር ይህን ቻናል ይከተሉ። ቀድሞውንም ተመዝጋቢ ከሆኑ በቀላሉ 'Done' ጠቅ ያድርጉ... በሲስተሙ ይጣራል። https://vm.tiktok.com/ZM6euGGGA/", reply_markup=reply_markup)
+            
+
+
+        elif callback_data == "DONE":
+            cursor.execute("""SELECT language FROM users WHERE chat_id=%s""", (chat_id,))
+
+            lang = cursor.fetchone()
+
+            if lang[0] == "AM":
+                await bot.send_message(chat_id=chat_id, text="እባኮትን ወደ YouTube/TikTok ቻናላችሁ የሚወስድ አገናኝ ሊንክ ላኩልን።")
+
+            else:
+                await bot.send_message(chat_id=chat_id, text="Please enter a link to your YouTube/TikTok channel.")
+                
         elif callback_data == "SUB":
             cursor.execute("""SELECT chat_id, link 
                 FROM users 
@@ -163,7 +193,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
             
             link = result[1]
-            cursor.execute("""UPDATE users SET shared_status=%s where chat_id=%s""", (True, result[0],))
+            cursor.execute("""UPDATE users SET shared_status=%s, last_shared = NOW() where chat_id=%s""", (True, result[0],))
             cursor.execute("""UPDATE users SET viewing=%s where chat_id=%s""", (result[0], chat_id))
             conn.commit()
             keyboard = [[InlineKeyboardButton("Subscribed 🫡", callback_data="SUBBED"),
@@ -207,6 +237,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
                 result = cursor.fetchone()
                 cursor.execute("""UPDATE users SET shared_status = %s where chat_id = %s""", (False, result[0],))
+                cursor.execute("""UPDATE users SET viewing=NULL where chat_id=%s""", (chat_id,))
                 conn.commit()
                 return
 
@@ -218,8 +249,8 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
             viewing = cursor.fetchone()
             cursor.execute("""UPDATE users SET shared_status = %s where chat_id = %s""", (False, viewing[0],))
-            
-            cursor.execute("""UPDATE users SET shared_status=%s where chat_id=%s""", (True, chat_id_store,))
+
+            cursor.execute("""UPDATE users SET shared_status=%s, last_shared = NOW() where chat_id=%s""", (True, chat_id_store,))
             
             
             
@@ -258,20 +289,20 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
             if result is None:
                 if lang[0] == "AM":
-                    await bot.send_message(chat_id=chat_id, text='"Subscribe" ለማድረግ ከ20 ደቂቃ በላይ ወስደዋል፣ እባክዎ እንደገና ይሞክሩ!', reply_markup=reply_markup)
+                    await bot.send_message(chat_id=chat_id, text='ለመመዝገብ ማንንም አላስመዘገብክም። እባክዎ ዳግም ይሞክሩ!!', reply_markup=reply_markup)
                 else:
-                    await bot.send_message(chat_id=chat_id, text='You have taken more than 20 minutes to subscribe, please try again!', reply_markup=reply_markup)
+                    await bot.send_message(chat_id=chat_id, text="You haven't added anyone to subscribe to. Please try again!", reply_markup=reply_markup)
                 return
 
             cursor.execute("""
                 UPDATE users 
-                SET last_shared = last_shared,
+                SET
                 shares = shares + 1,
                 viewing = NULL,
                 WHERE chat_id = %s
                 """, (chat_id,))
             
-            cursor.execute("""UPDATE users SET shares = shares - 1, last_shared = NOW(), shared_status = %s where chat_id = %s""", (False, result[0],))
+            cursor.execute("""UPDATE users SET shares = shares - 1, shared_status = %s where chat_id = %s""", (False, result[0],))
             conn.commit()
             if lang[0] == "AM":
                 await bot.send_message(
@@ -342,6 +373,17 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
         # Check if the message looks like a link
         if is_valid_url(user_message):
             received_link = re.search(r'https?://\S+', user_message).group()
+
+            cursor.execute("""SELECT chat_id FROM users WHERE chat_id=%s""", (chat_id,))
+
+            exists = cursor.fetchone()
+
+            if exists is None:
+                await bot.send_message(
+                    chat_id=chat_id,
+                    text=f"Pick a Language First!"
+                )
+                return
             
             cursor.execute("""UPDATE users SET link = %s, shared_status = %s where chat_id = %s""", (received_link, False, chat_id, ))
             
