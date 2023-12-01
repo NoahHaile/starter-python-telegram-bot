@@ -84,7 +84,8 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
     chat_id = ""
     text = ""
     if i % 10 == 0:
-        checkForAssholes()
+        #checkForAssholes()
+        pass
     i += 1
 
     
