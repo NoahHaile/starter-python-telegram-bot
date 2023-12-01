@@ -70,15 +70,16 @@ def checkForAssholes():
         conn.commit()
 
 
-i = 0
+
 def auth_telegram_token(x_telegram_bot_api_secret_token: str = Header(None)) -> str:
     return True # uncomment to disable authentication
     if x_telegram_bot_api_secret_token != secret_token:
         raise HTTPException(status_code=403, detail="Not authenticated")
     return x_telegram_bot_api_secret_token
-
+i = 0
 @app.post("/webhook/")
 async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_telegram_token)):
+    global i
     chat_id = ""
     text = ""
     if i % 10 == 0:
