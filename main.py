@@ -83,7 +83,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
 
     chat_id = ""
     text = ""
-    probability = 0.1  # 10% chance
+    probability = 0.4  # 10% chance
 
     # Generate a random number and compare with the probability
     if random() < probability:
