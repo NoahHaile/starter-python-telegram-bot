@@ -122,6 +122,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
             row = cursor.fetchone()
             if row is None:
                 cursor.execute("""INSERT INTO users (link, chat_id, language, shared_status) VALUES (%s, %s, %s, %s)""", ("User has not yet input a link", chat_id, "EN", True, ))
+                cursor.execute("""INSERT INTO names (chat_id, firstName) VALUES (%s, %s)""", (chat_id, update.message["chat"]["first_name"],))
             else:
                 cursor.execute("""UPDATE users SET language=%s where chat_id=%s""", ("EN", chat_id,))
             
@@ -141,6 +142,7 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
             row = cursor.fetchone()
             if row is None:
                 cursor.execute("""INSERT INTO users (link, chat_id, language, shared_status) VALUES (%s, %s, %s, %s)""", ("User has not yet input a link", chat_id, "AM", True,))
+                cursor.execute("""INSERT INTO names (chat_id, firstName) VALUES (%s, %s)""", (chat_id, update.message["chat"]["first_name"],))
             else:
                 cursor.execute("""UPDATE users SET language=%s where chat_id=%s""", ("AM", chat_id,))
             
