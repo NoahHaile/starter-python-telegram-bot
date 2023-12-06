@@ -89,13 +89,13 @@ async def handle_webhook(update: TelegramUpdate, token: str = Depends(auth_teleg
     if random() < probability:
         checkForAssholes()
 
-    
+    print("Received message:", update)
     if update.message:
         # Handle message update
         # Extract chat_id and text from update.message
         chat_id = update.message["chat"]["id"]
         text = update.message.get("text", "")
-    print("Received message:", update.message)
+    
 
     if text == "/start":
         keyboard = [[InlineKeyboardButton("English 🇺🇸", callback_data='EN'),
